@@ -22,7 +22,7 @@ import controlP5.*;
 /* end library imports *************************************************************************************************/
 
 /* user-set parameters ***********/
-public final boolean DEBUG = false;
+public final boolean DEBUG = true;
 public final boolean DEBUGMISLEAD = false;
 /* end user-set parameters **********/
 
@@ -77,7 +77,8 @@ float             edgeBottomRightY                    = worldHeight;
 
 
 /* Initialization of wall */
-FBox              wall;
+FBox              wall, region;
+FCircle           circle;
 
 
 /* Initialization of virtual tool */
@@ -86,7 +87,11 @@ PImage            haplyAvatar;
 
 ControlP5 cp5;
 Boolean mislead = false;
+Boolean inflate = false;
+Boolean leth = false;
 float[][] positionArr = new float[2][2];
+
+float circleSize = 1;
 /* end elements definition *********************************************************************************************/
 
 
@@ -109,7 +114,7 @@ void setup() {
    *      linux:        haplyBoard = new Board(this, "/dev/ttyUSB0", 0);
    *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem14201", 0);
    */
-  haplyBoard = new Board(this, "/dev/cu.usbmodem14201", 0);
+  haplyBoard = new Board(this, "COM4", 0);
   widgetOne           = new Device(widgetOneID, haplyBoard);
   pantograph          = new Pantograph();
 
@@ -138,7 +143,7 @@ void setup() {
   s                   = new HVirtualCoupling((1)); 
   s.h_avatar.setDensity(4);
   s.init(world, x, y); 
-  
+
   positionArr[0] = new float[] { x, y };
   positionArr[1] = new float[] {x, y};
 
@@ -159,8 +164,8 @@ void setup() {
 
   cp5 = new ControlP5(this);
   cp5.addButton("mislead").setLabel("First Word").setPosition(40, 40);
-  cp5.addButton("secondWord").setLabel("Second Word").setPosition(40, 60);
-  cp5.addButton("thirdWord").setLabel("Third Word").setPosition(40, 80);
+  cp5.addButton("inflate").setLabel("Second Word").setPosition(40, 60);
+  cp5.addButton("lethargy").setLabel("Third Word").setPosition(40, 80);
 
 
   world.draw();
@@ -204,6 +209,20 @@ void draw() {
         wall.setFillColor(color(0, 0, 0));
       }
     }
+    if (inflate) {
+      circle.setSize(circleSize);
+      delay(50);
+      if (s.h_avatar.getVelocityX() >10 && circleSize<10) {
+        circleSize +=0.1;
+        if (DEBUG) {
+          print("grow");
+        }
+      }
+    }
+
+    if (leth) {
+    }
+
 
 
 
@@ -233,19 +252,28 @@ void controlEvent(CallbackEvent event) {
         println("Button First Word Pressed");
       }
       mislead = true;
+      clearInflate();
+      clearLeth();
       beginMislead();
+
       break;
-    case "/secondWord":
+    case "/inflate":
       if (DEBUG) {
         println("Button Second Word Pressed");
       }
+      inflate = true;
+      beginInflate();
       clearMislead();
+      clearLeth();
       break;
-    case "/thirdWord":
+    case "/lethargy":
       if (DEBUG) {
         println("Button Third Word Pressed");
       }
+      leth  = true;
       clearMislead();
+      clearInflate();
+      beginLeth();
       break;
     }
   }
@@ -263,7 +291,7 @@ private float[][] checkPosition(float[][] positionArr) {
   //AvatarPosition or ToolPosition?
   float x = s.getAvatarPositionX();
   float y = s.getAvatarPositionY();
-  
+
   //replace previous position with current position
   positionArr[0][0] = positionArr[1][0];
   positionArr[0][1] = positionArr[1][1];
@@ -284,6 +312,24 @@ void clearMislead() {
   world.remove(wall);
 }
 
+void beginInflate() {
+  createCircle();
+}
+
+void clearInflate() {
+  world.remove(circle);
+}
+
+void beginLeth() {
+  createRegion();
+  s.h_avatar.setDamping(800);
+}
+
+void clearLeth() {
+  world.remove(region);
+  s.h_avatar.setDamping(40);
+}
+
 void createWall() {
   /* creation of wall */
   wall                   = new FBox(width, 0.1);
@@ -294,6 +340,21 @@ void createWall() {
   positionArr = checkPosition(positionArr);
 }
 
+void createCircle() {
+  circle = new FCircle(2);
+  circle.setPosition(15, 5);
+  circle.setFill(0);
+  circle.setStatic(true);
+  world.add(circle);
+}
+void createRegion() {
+  region                   = new FBox(8, 8);
+  region.setPosition(15, 5);
+  region.setStatic(true);
+  region.setFill(150, 150, 255, 80);
+  region.setSensor(true);
+  world.add(region);
+}
 void hapticSimulationStep() {
   /* put haptic simulation code here, runs repeatedly at 1kHz as defined in setup */
 
