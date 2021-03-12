@@ -79,6 +79,7 @@ float             edgeBottomRightY                    = worldHeight;
 /* Initialization of wall */
 FBox              wall, region;
 FCircle           circle;
+FCircle[] bubbles = new FCircle[10];
 
 
 /* Initialization of virtual tool */
@@ -89,9 +90,11 @@ ControlP5 cp5;
 Boolean mislead = false;
 Boolean inflate = false;
 Boolean leth = false;
+Boolean sharp = false;
 float[][] positionArr = new float[2][2];
 
 float circleSize = 1;
+float speed =0;
 /* end elements definition *********************************************************************************************/
 
 
@@ -166,6 +169,7 @@ void setup() {
   cp5.addButton("mislead").setLabel("First Word").setPosition(40, 40);
   cp5.addButton("inflate").setLabel("Second Word").setPosition(40, 60);
   cp5.addButton("lethargy").setLabel("Third Word").setPosition(40, 80);
+  cp5.addButton("sharp").setLabel("Fourth Word").setPosition(40, 100);
 
 
   world.draw();
@@ -212,19 +216,24 @@ void draw() {
     if (inflate) {
       circle.setSize(circleSize);
       delay(50);
-      if (s.h_avatar.getVelocityX() >10 && circleSize<10) {
-        circleSize +=0.1;
+      speed = s.h_avatar.getVelocityX();
+      if (speed >10 && circleSize<20) {
+        circleSize += speed*0.01;
         if (DEBUG) {
           print("grow");
         }
       }
     }
 
-    if (leth) {
+    if (sharp) {
+      for (int i = 0; i <10;i++){
+        if (s.h_avatar.isTouchingBody(bubbles[i]))
+        {
+          bubbles[i].setSensor(true);
+        }
+      }
+      
     }
-
-
-
 
     world.draw();
   }
@@ -265,6 +274,7 @@ void controlEvent(CallbackEvent event) {
       beginInflate();
       clearMislead();
       clearLeth();
+      clearSharp();
       break;
     case "/lethargy":
       if (DEBUG) {
@@ -273,7 +283,18 @@ void controlEvent(CallbackEvent event) {
       leth  = true;
       clearMislead();
       clearInflate();
+      clearSharp();
       beginLeth();
+      break;
+    case "/sharp":
+      if (DEBUG) {
+        println("Button Fourth Word Pressed");
+      }
+      clearMislead();
+      clearInflate();
+      clearLeth();
+      beginSharp();
+      sharp = true; 
       break;
     }
   }
@@ -330,6 +351,13 @@ void clearLeth() {
   s.h_avatar.setDamping(40);
 }
 
+void beginSharp() {
+  createBubbles();
+}
+
+void clearSharp() {
+}
+
 void createWall() {
   /* creation of wall */
   wall                   = new FBox(width, 0.1);
@@ -354,6 +382,19 @@ void createRegion() {
   region.setFill(150, 150, 255, 80);
   region.setSensor(true);
   world.add(region);
+}
+
+void createBubbles() {
+  float x, y;
+  for (int i = 0; i<10; i++) {
+    bubbles[i] = new FCircle(0.75);
+    x = random(10, 23);
+    y = random(3, 8);
+    bubbles[i].setPosition(x, y);
+    bubbles[i].setFill(random(0,255), random(0,255),random(0,255));
+    bubbles[i].setStatic(true);
+    world.add(bubbles[i]);
+  }
 }
 void hapticSimulationStep() {
   /* put haptic simulation code here, runs repeatedly at 1kHz as defined in setup */
