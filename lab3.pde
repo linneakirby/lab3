@@ -394,8 +394,8 @@ void clearSharp() {
 
 void createWall() {
   /* creation of wall */
-  wall                   = new FBox(width, 0.1);
-  wall.setPosition(edgeTopLeftX, edgeTopLeftY+2*worldHeight/3.0);
+  wall                   = new FBox(33, 0.1);   //width, 0.1
+  wall.setPosition(edgeTopLeftX, edgeTopLeftY+2*worldHeight/3.0-2);
   wall.setStatic(true);
   if(DEBUG){
     wall.setFill(0);
@@ -403,6 +403,18 @@ void createWall() {
   else{
     wall.setFill(0, 0);
   }
+  world.add(wall);
+  
+  wall                   = new FBox(7, 0.1);
+  wall.setPosition(edgeTopLeftX+22, edgeTopLeftY+2*worldHeight/3.0-2);
+  wall.setStatic(true);
+  wall.setFill(0, 0, 0);
+  world.add(wall);
+  
+  wall                   = new FBox(2, 0.1);
+  wall.setPosition(edgeTopLeftX+17.5, edgeTopLeftY+2*worldHeight/3.0-2);
+  wall.setStatic(true);
+  wall.setFill(0,0,0);
   world.add(wall);
   positionArr = checkPosition(positionArr);
 }
