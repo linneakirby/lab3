@@ -66,16 +66,16 @@ PVector           torques                             = new PVector(0, 0);
 
 /* task space */
 PVector           posEE                               = new PVector(0, 0);
-PVector           fEE                                = new PVector(0, 0); 
+PVector           fEE                                = new PVector(0, 0);
 
 /* World boundaries in centimeters */
 FWorld            world;
-float             worldWidth                          = 25.0;  
-float             worldHeight                         = 10.0; 
+float             worldWidth                          = 25.0;
+float             worldHeight                         = 10.0;
 
-float             edgeTopLeftX                        = 0.0; 
-float             edgeTopLeftY                        = 0.0; 
-float             edgeBottomRightX                    = worldWidth; 
+float             edgeTopLeftX                        = 0.0;
+float             edgeTopLeftY                        = 0.0;
+float             edgeBottomRightX                    = worldWidth;
 float             edgeBottomRightY                    = worldHeight;
 
 
@@ -113,7 +113,7 @@ void setup() {
 
   /* device setup */
 
-  /**  
+  /**
    * The board declaration needs to be changed depending on which USB serial port the Haply board is connected.
    * In the base example, a connection is setup to the first detected serial device, this parameter can be changed
    * to explicitly state the serial port will look like the following for different OS:
@@ -122,7 +122,7 @@ void setup() {
    *      linux:        haplyBoard = new Board(this, "/dev/ttyUSB0", 0);
    *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem14201", 0);
    */
-  haplyBoard = new Board(this, PORT, 0);
+  haplyBoard = new Board(this, "COM4", 0);
   widgetOne           = new Device(widgetOneID, haplyBoard);
   pantograph          = new Pantograph();
 
@@ -139,8 +139,8 @@ void setup() {
 
 
   /* 2D physics scaling and world creation */
-  hAPI_Fisica.init(this); 
-  hAPI_Fisica.setScale(pixelsPerCentimeter); 
+  hAPI_Fisica.init(this);
+  hAPI_Fisica.setScale(pixelsPerCentimeter);
   world               = new FWorld();
 
 
@@ -148,25 +148,25 @@ void setup() {
   float x = edgeTopLeftX+worldWidth/2;
   float y = edgeTopLeftY+2;
   /* Haptic Tool Initialization */
-  s                   = new HVirtualCoupling((1)); 
+  s                   = new HVirtualCoupling((1));
   s.h_avatar.setDensity(4);
-  s.init(world, x, y); 
+  s.init(world, x, y);
 
   positionArr[0] = new float[] { x, y };
   positionArr[1] = new float[] {x, y};
 
 
-  /* If you are developing on a Mac users must update the path below 
-   * from "../img/Haply_avatar.png" to "./img/Haply_avatar.png" 
+  /* If you are developing on a Mac users must update the path below
+   * from "../img/Haply_avatar.png" to "./img/Haply_avatar.png"
    */
-  haplyAvatar = loadImage("./img/Haply_avatar.png"); 
+  haplyAvatar = loadImage("./img/Haply_avatar.png");
   haplyAvatar.resize((int)(hAPI_Fisica.worldToScreen(1)), (int)(hAPI_Fisica.worldToScreen(1)));
-  s.h_avatar.attachImage(haplyAvatar); 
+  s.h_avatar.attachImage(haplyAvatar);
 
 
   /* world conditions setup */
   world.setGravity((0.0), (1000.0)); //1000 cm/(s^2)
-  world.setEdges((edgeTopLeftX), (edgeTopLeftY), (edgeBottomRightX), (edgeBottomRightY)); 
+  world.setEdges((edgeTopLeftX), (edgeTopLeftY), (edgeBottomRightX), (edgeBottomRightY));
   world.setEdgesRestitution(.4);
   world.setEdgesFriction(0.5);
 
@@ -202,7 +202,7 @@ void draw() {
   if (millis() - lastMillis >= 100) {
     positionArr = checkPosition(positionArr);
     if (DEBUGMISLEAD) {
-      System.out.println("Position Array: {" + positionArr[0][0] + ", " + positionArr[0][1] + "}, {" 
+      System.out.println("Position Array: {" + positionArr[0][0] + ", " + positionArr[0][1] + "}, {"
         + positionArr[1][0] + ", " + positionArr[1][1] + "}");
       System.out.println("Mislead? " + mislead);
     }
@@ -408,7 +408,7 @@ void createWall() {
   }
   wall[0].setNoStroke();
   world.add(wall[0]);
-  
+
   wall[1]                   = new FBox(7, 0.1);
   wall[1].setPosition(edgeTopLeftX+22, edgeTopLeftY+2*worldHeight/3.0-2);
   wall[1].setStatic(true);
@@ -420,7 +420,7 @@ void createWall() {
   }
   wall[1].setNoStroke();
   world.add(wall[1]);
-  
+
   wall[2]                   = new FBox(2, 0.1);
   wall[2].setPosition(edgeTopLeftX+17.5, edgeTopLeftY+2*worldHeight/3.0-2);
   wall[2].setStatic(true);
@@ -445,6 +445,7 @@ void createBlob(FBlob a, float s) {
     a.setFill(0, 255, 0, 50);
   } else {
     a.setFill(0, 0);
+    a.setNoStroke();
   }
   a.setNoStroke();
   a.setStatic(true);
@@ -463,6 +464,7 @@ void createCircle() {
     circle.setFill(random(0, 255), random(0, 255), random(0, 255), 50);
   } else {
     circle.setFill(0, 0);
+    circle.setNoStroke();
   }
   circle.setNoStroke();
   circle.setStatic(true);
@@ -478,6 +480,7 @@ void createRegion() {
   }
   else{
     region.setFill(0, 0);
+    region.setNoStroke();
   }
   region.setNoStroke();
   region.setSensor(true);
@@ -521,7 +524,7 @@ void hapticSimulationStep() {
     getEndEffectorState();
   }
 
-  s.setToolPosition(edgeTopLeftX+worldWidth/2-(posEE).x, edgeTopLeftY+(posEE).y-7); 
+  s.setToolPosition(edgeTopLeftX+worldWidth/2-(posEE).x, edgeTopLeftY+(posEE).y-7);
 
 
   s.updateCouplingForce();
@@ -540,7 +543,7 @@ void getEndEffectorState() {
   /* GET END-EFFECTOR STATE (TASK SPACE) */
   widgetOne.device_read_data();
 
-  angles.set(widgetOne.get_device_angles()); 
+  angles.set(widgetOne.get_device_angles());
   posEE.set(widgetOne.get_device_position(angles.array()));
   posEE.set(posEE.copy().mult(200));
 }
