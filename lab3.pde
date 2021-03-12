@@ -122,7 +122,7 @@ void setup() {
    *      linux:        haplyBoard = new Board(this, "/dev/ttyUSB0", 0);
    *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem14201", 0);
    */
-  haplyBoard = new Board(this, "COM4", 0);
+  haplyBoard = new Board(this, PORT, 0);
   widgetOne           = new Device(widgetOneID, haplyBoard);
   pantograph          = new Pantograph();
 
@@ -174,7 +174,7 @@ void setup() {
   cp5.addButton("mislead").setLabel("First Word").setPosition(40, 40);
   cp5.addButton("inflate").setLabel("Second Word").setPosition(40, 60);
   cp5.addButton("lethargy").setLabel("Third Word").setPosition(40, 80);
-  cp5.addButton("sharp").setLabel("Fourth Word").setPosition(40, 100);
+  //cp5.addButton("sharp").setLabel("Fourth Word").setPosition(40, 100);
 
 
   world.draw();
@@ -245,9 +245,6 @@ void draw() {
         }
         growDelta += deltaTime;
       }
-    }
-
-    if (sharp) {
     }
 
     world.draw();
@@ -405,8 +402,8 @@ void createWall() {
   }
   else{
     wall[0].setFill(0, 0);
+    wall[0].setNoStroke();
   }
-  wall[0].setNoStroke();
   world.add(wall[0]);
 
   wall[1]                   = new FBox(7, 0.1);
@@ -417,8 +414,8 @@ void createWall() {
   }
   else{
     wall[1].setFill(0, 0);
+    wall[1].setNoStroke();
   }
-  wall[1].setNoStroke();
   world.add(wall[1]);
 
   wall[2]                   = new FBox(2, 0.1);
@@ -429,8 +426,8 @@ void createWall() {
   }
   else{
     wall[2].setFill(0,0);
+    wall[2].setNoStroke();
   }
-  wall[2].setNoStroke();
   world.add(wall[2]);
   positionArr = checkPosition(positionArr);
 }
@@ -447,7 +444,6 @@ void createBlob(FBlob a, float s) {
     a.setFill(0, 0);
     a.setNoStroke();
   }
-  a.setNoStroke();
   a.setStatic(true);
   a.setSensor(true);
   arrogance = a;
@@ -466,7 +462,6 @@ void createCircle() {
     circle.setFill(0, 0);
     circle.setNoStroke();
   }
-  circle.setNoStroke();
   circle.setStatic(true);
   world.add(circle);
 }
@@ -482,7 +477,6 @@ void createRegion() {
     region.setFill(0, 0);
     region.setNoStroke();
   }
-  region.setNoStroke();
   region.setSensor(true);
   world.add(region);
 }
