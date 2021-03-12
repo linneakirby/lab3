@@ -26,7 +26,7 @@ import controlP5.*;
 public final String PORT = "/dev/cu.usbmodem14201";
 public final boolean DEBUG = true;
 public final boolean DEBUGMISLEAD = false;
-public final boolean DEBUGARROGANT = true;
+public final boolean DEBUGARROGANT = false;
 /* end user-set parameters **********/
 
 /* scheduler definition ************************************************************************************************/
@@ -97,6 +97,7 @@ Boolean sharp = false;
 float[][] positionArr = new float[2][2];
 
 float circleSize = 1;
+float blobSize = 2;
 float speed =0;
 /* end elements definition *********************************************************************************************/
 
@@ -214,37 +215,38 @@ void draw() {
     if (mislead) {
       if (checkPassThroughWall(positionArr)) {
         wall.setSensor(true);
-        wall.setFillColor(color(0, 255, 0));
+        if(DEBUG){
+          wall.setFillColor(color(0, 255, 0));
+        }
       } else {
         wall.setSensor(false);
-        wall.setFillColor(color(0, 0, 0));
+        if(DEBUG){
+          wall.setFillColor(color(0, 0, 0));
+        }
       }
     }
     if (inflate) {
-      setBlobSize(arrogance, circleSize+1);
+      setBlobSize(arrogance, blobSize);
       circle.setSize(circleSize);
       delay(50);
       speed = Math.abs(s.h_avatar.getVelocityX());
       if (speed >10 && circleSize<20) {
-        circleSize += deltaTime*0.01 + speed*0.01;
+        circleSize += deltaTime*0.01 + speed*0.005;
+        blobSize += deltaTime*0.01 + speed*0.01;
         growDelta = 0f;
         if (DEBUGARROGANT) {
           print("grow");
         }
-      }
-      else{
-        if(growDelta > 50 && circleSize > 1){
+      } else {
+        if (growDelta > 50 && circleSize > 1) {
           circleSize -= deltaTime*0.0005;
+          blobSize -= deltaTime*0.0005;
         }
         growDelta += deltaTime;
       }
     }
 
     if (sharp) {
-      isTouching = s.h_avatar.getTouching();
-      for (FBody c : isTouching){
-        pingPong(c);
-      }
     }
 
     world.draw();
@@ -313,15 +315,9 @@ void controlEvent(CallbackEvent event) {
   }
 }
 
-private void setBlobSize(FBlob a, float s){
+private void setBlobSize(FBlob a, float s) {
   world.remove(arrogance);
   createBlob(a, s);
-}
-  
-
-private void pingPong(FBody ball){
-  float d = ball.getDensity();
-  //ball.setDensity(d + 1f);
 }
 
 private Boolean checkPassThroughWall(float[][] positionArr) {
@@ -372,7 +368,7 @@ void clearInflate() {
 }
 
 void beginLeth() {
-  
+
   createRegion();
   s.h_avatar.setDamping(800);
 }
@@ -385,13 +381,15 @@ void clearLeth() {
 
 void beginSharp() {
   createBubbles();
+  s.h_avatar.setDamping(400);
 }
 
 void clearSharp() {
   sharp = false;
-  for(FCircle c : bubbles){
+  for (FCircle c : bubbles) {
     world.remove(c);
   }
+  s.h_avatar.setDamping(40);
 }
 
 void createWall() {
@@ -399,37 +397,58 @@ void createWall() {
   wall                   = new FBox(width, 0.1);
   wall.setPosition(edgeTopLeftX, edgeTopLeftY+2*worldHeight/3.0);
   wall.setStatic(true);
-  wall.setFill(0, 0, 0);
+  if(DEBUG){
+    wall.setFill(0);
+  }
+  else{
+    wall.setFill(0, 0);
+  }
   world.add(wall);
   positionArr = checkPosition(positionArr);
 }
 
 void createBlob(FBlob a, float s) {
-  if(a != null){
+  if (a != null) {
     world.remove(a);
   }
   a = new FBlob();
   a.setAsCircle(15, 5, s);
-  a.setFill(0, 50);
+  if (DEBUG) {
+    a.setFill(0, 255, 0, 50);
+  } else {
+    a.setFill(0, 0);
+  }
   a.setStatic(true);
   a.setSensor(true);
   arrogance = a;
   world.add(arrogance);
 }
 
-void createCircle(){
+void createCircle() {
+  if (circle != null) {
+    world.remove(circle);
+  }
   circle = new FCircle(1);
   circle.setPosition(15, 5);
-  circle.setFill(0, 50);
+  if (DEBUG) {
+    circle.setFill(random(0, 255), random(0, 255), random(0, 255), 50);
+  } else {
+    circle.setFill(0, 0);
+  }
   circle.setStatic(true);
   world.add(circle);
 }
 
 void createRegion() {
-  region                   = new FBox(8, 8);
+  region = new FBox(8, 8);
   region.setPosition(15, 5);
   region.setStatic(true);
-  region.setFill(150, 150, 255, 80);
+  if(DEBUG){
+    region.setFill(random(0, 255), random(0, 255), random(0, 255), 50);
+  }
+  else{
+    region.setFill(0, 0);
+  }
   region.setSensor(true);
   world.add(region);
 }
@@ -442,17 +461,22 @@ void createBubbles() {
     HashSet ySet = new HashSet();
     x = random(10, 23);
     y = random(3, 8);
-    while (xSet.contains(x)){
-      x = random(10,23);
+    while (xSet.contains(x)) {
+      x = random(10, 23);
     }
     xSet.add(x);
-    while (ySet.contains(y)){
+    while (ySet.contains(y)) {
       y = random(3, 8);
     }
     ySet.add(y);
     bubbles[i].setPosition(x, y);
-    bubbles[i].setFill(random(0,255), random(0,255),random(0,255));
+    if (DEBUG) {
+      bubbles[i].setFill(random(0, 255), random(0, 255), random(0, 255));
+    } else {
+      bubbles[i].setFill(0, 0);
+    }
     bubbles[i].setStatic(true);
+    bubbles[i].setSensor(true);
     world.add(bubbles[i]);
   }
 }
