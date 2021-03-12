@@ -24,7 +24,7 @@ import controlP5.*;
 
 /* user-set parameters ***********/
 public final String PORT = "/dev/cu.usbmodem14201";
-public final boolean DEBUG = true;
+public final boolean DEBUG = false;
 public final boolean DEBUGMISLEAD = false;
 public final boolean DEBUGARROGANT = false;
 /* end user-set parameters **********/
@@ -80,7 +80,7 @@ float             edgeBottomRightY                    = worldHeight;
 
 
 /* Initialization of wall */
-FBox              wall, region;
+FBox              wall, region, wall1,wall2;
 FCircle[] bubbles = new FCircle[10];
 FBlob arrogance;
 FCircle circle;
@@ -121,7 +121,7 @@ void setup() {
    *      linux:        haplyBoard = new Board(this, "/dev/ttyUSB0", 0);
    *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem14201", 0);
    */
-  haplyBoard = new Board(this, PORT, 0);
+  haplyBoard = new Board(this, "COM4", 0);
   widgetOne           = new Device(widgetOneID, haplyBoard);
   pantograph          = new Pantograph();
 
@@ -352,6 +352,8 @@ void beginMislead() {
 void clearMislead() {
   mislead = false;
   world.remove(wall);
+  world.remove(wall1);
+  world.remove(wall2);
 }
 
 void beginInflate() {
@@ -394,28 +396,36 @@ void clearSharp() {
 
 void createWall() {
   /* creation of wall */
-  wall                   = new FBox(33, 0.1);   //width, 0.1
-  wall.setPosition(edgeTopLeftX, edgeTopLeftY+2*worldHeight/3.0-2);
-  wall.setStatic(true);
-  if(DEBUG){
-    wall.setFill(0);
-  }
-  else{
-    wall.setFill(0, 0);
-  }
-  world.add(wall);
+  wall1                   = new FBox(33, 0.1);   //width, 0.1
+  wall1.setPosition(edgeTopLeftX, edgeTopLeftY+2*worldHeight/3.0-2);
+  wall1.setStatic(true);
+  world.add(wall1);
   
-  wall                   = new FBox(7, 0.1);
-  wall.setPosition(edgeTopLeftX+22, edgeTopLeftY+2*worldHeight/3.0-2);
-  wall.setStatic(true);
-  wall.setFill(0, 0, 0);
-  world.add(wall);
+  wall2                   = new FBox(7, 0.1);
+  wall2.setPosition(edgeTopLeftX+22, edgeTopLeftY+2*worldHeight/3.0-2);
+  wall2.setStatic(true);
+  wall2.setFill(0, 0, 0);
+  world.add(wall2);
   
   wall                   = new FBox(2, 0.1);
   wall.setPosition(edgeTopLeftX+17.5, edgeTopLeftY+2*worldHeight/3.0-2);
   wall.setStatic(true);
   wall.setFill(0,0,0);
   world.add(wall);
+  
+  if(DEBUG){
+    wall1.setFill(0);
+    wall2.setFill(0);
+    wall.setFill(0);
+  }
+  else{
+    wall1.setFill(0, 0);
+    wall1.setNoStroke();
+    wall.setNoStroke();
+    wall2.setNoStroke();
+    wall.setFill(0, 0);
+    wall2.setFill(0, 0);
+  }
   positionArr = checkPosition(positionArr);
 }
 
@@ -429,6 +439,7 @@ void createBlob(FBlob a, float s) {
     a.setFill(0, 255, 0, 50);
   } else {
     a.setFill(0, 0);
+    a.setNoStroke();
   }
   a.setStatic(true);
   a.setSensor(true);
@@ -446,6 +457,7 @@ void createCircle() {
     circle.setFill(random(0, 255), random(0, 255), random(0, 255), 50);
   } else {
     circle.setFill(0, 0);
+    circle.setNoStroke();
   }
   circle.setStatic(true);
   world.add(circle);
@@ -460,6 +472,7 @@ void createRegion() {
   }
   else{
     region.setFill(0, 0);
+    region.setNoStroke();
   }
   region.setSensor(true);
   world.add(region);
