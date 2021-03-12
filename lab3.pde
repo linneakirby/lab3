@@ -81,9 +81,9 @@ float             edgeBottomRightY                    = worldHeight;
 
 /* Initialization of wall */
 FBox              wall, region;
-FCircle           circle;
 FCircle[] bubbles = new FCircle[10];
-
+FBlob arrogance;
+FCircle circle;
 
 /* Initialization of virtual tool */
 HVirtualCoupling  s;
@@ -191,6 +191,7 @@ void setup() {
 float lastMillis = millis();
 float deltaTime = 0f;
 float growDelta = 0f;
+ArrayList<FBody> isTouching;
 
 /* draw section ********************************************************************************************************/
 void draw() {
@@ -220,6 +221,7 @@ void draw() {
       }
     }
     if (inflate) {
+      setBlobSize(arrogance, circleSize+1);
       circle.setSize(circleSize);
       delay(50);
       speed = Math.abs(s.h_avatar.getVelocityX());
@@ -231,7 +233,7 @@ void draw() {
         }
       }
       else{
-        if(growDelta > 50 && circleSize > 2){
+        if(growDelta > 50 && circleSize > 1){
           circleSize -= deltaTime*0.0005;
         }
         growDelta += deltaTime;
@@ -239,7 +241,7 @@ void draw() {
     }
 
     if (sharp) {
-      ArrayList<FBody> isTouching = s.h_avatar.getTouching();
+      isTouching = s.h_avatar.getTouching();
       for (FBody c : isTouching){
         pingPong(c);
       }
@@ -282,10 +284,10 @@ void controlEvent(CallbackEvent event) {
         println("Button Second Word Pressed");
       }
       inflate = true;
-      beginInflate();
       clearMislead();
       clearLeth();
       clearSharp();
+      beginInflate();
       break;
     case "/lethargy":
       if (DEBUG) {
@@ -310,6 +312,12 @@ void controlEvent(CallbackEvent event) {
     }
   }
 }
+
+private void setBlobSize(FBlob a, float s){
+  world.remove(arrogance);
+  createBlob(a, s);
+}
+  
 
 private void pingPong(FBody ball){
   float d = ball.getDensity();
@@ -346,23 +354,31 @@ void beginMislead() {
 }
 
 void clearMislead() {
+  mislead = false;
   world.remove(wall);
 }
 
 void beginInflate() {
+  createBlob(arrogance, 2f);
   createCircle();
+  s.h_avatar.setDamping(800);
 }
 
 void clearInflate() {
+  inflate = false;
   world.remove(circle);
+  world.remove(arrogance);
+  s.h_avatar.setDamping(40);
 }
 
 void beginLeth() {
+  
   createRegion();
   s.h_avatar.setDamping(800);
 }
 
 void clearLeth() {
+  leth = false;
   world.remove(region);
   s.h_avatar.setDamping(40);
 }
@@ -372,6 +388,7 @@ void beginSharp() {
 }
 
 void clearSharp() {
+  sharp = false;
   for(FCircle c : bubbles){
     world.remove(c);
   }
@@ -387,15 +404,27 @@ void createWall() {
   positionArr = checkPosition(positionArr);
 }
 
-void createCircle() {
-  circle = new FCircle(2);
+void createBlob(FBlob a, float s) {
+  if(a != null){
+    world.remove(a);
+  }
+  a = new FBlob();
+  a.setAsCircle(15, 5, s);
+  a.setFill(0, 50);
+  a.setStatic(true);
+  a.setSensor(true);
+  arrogance = a;
+  world.add(arrogance);
+}
+
+void createCircle(){
+  circle = new FCircle(1);
   circle.setPosition(15, 5);
-  circle.setFill(0);
+  circle.setFill(0, 50);
   circle.setStatic(true);
-  //circle.setDensity(.5);
-  circle.addTorque(3);
   world.add(circle);
 }
+
 void createRegion() {
   region                   = new FBox(8, 8);
   region.setPosition(15, 5);
