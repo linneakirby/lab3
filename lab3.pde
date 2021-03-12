@@ -18,12 +18,15 @@
 import processing.serial.*;
 import static java.util.concurrent.TimeUnit.*;
 import java.util.concurrent.*;
+import java.util.*;
 import controlP5.*;
 /* end library imports *************************************************************************************************/
 
 /* user-set parameters ***********/
+public final String PORT = "/dev/cu.usbmodem14201";
 public final boolean DEBUG = true;
 public final boolean DEBUGMISLEAD = false;
+public final boolean DEBUGARROGANT = true;
 /* end user-set parameters **********/
 
 /* scheduler definition ************************************************************************************************/
@@ -117,7 +120,7 @@ void setup() {
    *      linux:        haplyBoard = new Board(this, "/dev/ttyUSB0", 0);
    *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem14201", 0);
    */
-  haplyBoard = new Board(this, "COM4", 0);
+  haplyBoard = new Board(this, PORT, 0);
   widgetOne           = new Device(widgetOneID, haplyBoard);
   pantograph          = new Pantograph();
 
@@ -186,10 +189,13 @@ void setup() {
 /* end setup section ***************************************************************************************************/
 
 float lastMillis = millis();
+float deltaTime = 0f;
+float growDelta = 0f;
 
 /* draw section ********************************************************************************************************/
 void draw() {
   /* put graphical code here, runs repeatedly at defined framerate in setup, else default at 60fps: */
+  deltaTime = millis() - lastMillis;
   if (millis() - lastMillis >= 100) {
     positionArr = checkPosition(positionArr);
     if (DEBUGMISLEAD) {
@@ -216,23 +222,27 @@ void draw() {
     if (inflate) {
       circle.setSize(circleSize);
       delay(50);
-      speed = s.h_avatar.getVelocityX();
+      speed = Math.abs(s.h_avatar.getVelocityX());
       if (speed >10 && circleSize<20) {
-        circleSize += speed*0.01;
-        if (DEBUG) {
+        circleSize += deltaTime*0.01 + speed*0.01;
+        growDelta = 0f;
+        if (DEBUGARROGANT) {
           print("grow");
         }
+      }
+      else{
+        if(growDelta > 50 && circleSize > 2){
+          circleSize -= deltaTime*0.0005;
+        }
+        growDelta += deltaTime;
       }
     }
 
     if (sharp) {
-      for (int i = 0; i <10;i++){
-        if (s.h_avatar.isTouchingBody(bubbles[i]))
-        {
-          bubbles[i].setSensor(true);
-        }
+      ArrayList<FBody> isTouching = s.h_avatar.getTouching();
+      for (FBody c : isTouching){
+        pingPong(c);
       }
-      
     }
 
     world.draw();
@@ -263,6 +273,7 @@ void controlEvent(CallbackEvent event) {
       mislead = true;
       clearInflate();
       clearLeth();
+      clearSharp();
       beginMislead();
 
       break;
@@ -290,14 +301,19 @@ void controlEvent(CallbackEvent event) {
       if (DEBUG) {
         println("Button Fourth Word Pressed");
       }
+      sharp = true;
       clearMislead();
       clearInflate();
       clearLeth();
       beginSharp();
-      sharp = true; 
       break;
     }
   }
+}
+
+private void pingPong(FBody ball){
+  float d = ball.getDensity();
+  //ball.setDensity(d + 1f);
 }
 
 private Boolean checkPassThroughWall(float[][] positionArr) {
@@ -356,6 +372,9 @@ void beginSharp() {
 }
 
 void clearSharp() {
+  for(FCircle c : bubbles){
+    world.remove(c);
+  }
 }
 
 void createWall() {
@@ -373,6 +392,8 @@ void createCircle() {
   circle.setPosition(15, 5);
   circle.setFill(0);
   circle.setStatic(true);
+  //circle.setDensity(.5);
+  circle.addTorque(3);
   world.add(circle);
 }
 void createRegion() {
@@ -387,9 +408,19 @@ void createRegion() {
 void createBubbles() {
   float x, y;
   for (int i = 0; i<10; i++) {
-    bubbles[i] = new FCircle(0.75);
+    bubbles[i] = new FCircle(0.5);
+    HashSet xSet = new HashSet();
+    HashSet ySet = new HashSet();
     x = random(10, 23);
     y = random(3, 8);
+    while (xSet.contains(x)){
+      x = random(10,23);
+    }
+    xSet.add(x);
+    while (ySet.contains(y)){
+      y = random(3, 8);
+    }
+    ySet.add(y);
     bubbles[i].setPosition(x, y);
     bubbles[i].setFill(random(0,255), random(0,255),random(0,255));
     bubbles[i].setStatic(true);
